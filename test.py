@@ -95,6 +95,21 @@ class MandrillInboundNoCcTest(unittest.TestCase):
     def test_can_handle_no_cc(self):
         cc = self.inbound.cc
         assert [] == cc
+        
+class MandrillInboundSignedTest(unittest.TestCase):
+    def setUp(self):
+        self.json_data = open('tests/fixtures/valid_http_post_signed.json').read()
+        self.inbound = MandrillInbound(json=self.json_data)
+        self.KEY = 'CsJnnu7i5G27gGdB78ASdA'
+        self.URL = 'http://requestb.in/16xakke1'
+        self.EXPECTED_SIG = 'V/aaBs1ojYH4FAbAc3klaBIpB6w='
+        
+    def test_sig_generation(self):
+        generatedSig = self.inbound._gen_sig(self.URL, self.KEY, self.json_data)
+        print generatedSig
+        assert generatedSig is not None
+        assert generatedSig is self.EXPECTED_SIG
+        assert self.inbound.isSigValid(self.EXPECTED_SIG, self.URL, self.KEY)
 
 
 if __name__ == "__main__":

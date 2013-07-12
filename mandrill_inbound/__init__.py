@@ -3,6 +3,9 @@ import re
 from base64 import b64decode
 from datetime import datetime
 from email.utils import mktime_tz, parsedate_tz
+import hmac
+from hashlib import sha1
+import binascii
 
 
 class MandrillInbound(object):
@@ -36,6 +39,23 @@ class MandrillInbound(object):
     @property
     def subject(self):
         return self.msg.get('subject')
+        
+    def _gen_sig(self, url, key, json_data):
+        try:
+            import pdb;pdb.set_trace()
+            signed_data = url + 'mandrill_events' + json_data
+            hmacInstance = hmac.new(key, signed_data, sha1)
+            raw_sig = hmacInstance.digest()
+            newSig = binascii.b2a_base64(raw_sig)[:-1] #index gets rid of the backslash
+            return newSig
+        except:
+            return None
+            
+    def isSigValid(self, canidateSig, url, key, json_data):
+        generatedSig = self._gen_sig(url, key, json_data)
+        if candidateSig == generatedSig:
+            return True
+        return False
     
     @property
     def sender(self):
